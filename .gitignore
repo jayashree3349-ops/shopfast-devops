@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+kubeconfig*
+admin.conf
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+
+# Istio downloaded distribution
+istio-*/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

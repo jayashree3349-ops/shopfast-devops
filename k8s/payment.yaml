@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-v1
+  namespace: payment
+  labels:
+    app: payment
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: payment
+        version: v1
+    spec:
+      containers:
+        - name: payment
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-text=Payment Service v1"
+            - "-listen=:8080"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-v2
+  namespace: payment
+  labels:
+    app: payment
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: payment
+        version: v2
+    spec:
+      containers:
+        - name: payment
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-text=Payment Service v2"
+            - "-listen=:8080"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: payment
+spec:
+  selector:
+    app: payment
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payment-service
+  namespace: payment
+spec:
+  host: payment-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: payment-service
+  namespace: payment
+spec:
+  hosts:
+    - payment-service
+  http:
+    - route:
+        - destination:
+            host: payment-service
+            subset: v1
+          weight: 90
+        - destination:
+            host: payment-service
+            subset: v2
+          weight: 10
